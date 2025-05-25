@@ -80,7 +80,7 @@ const loginWithEmailAndPassword = async (data: LoginInput): Promise<any> => {
 };
 
 const logout = (): Promise<void> => {
-	return api.post('/logout');
+	return api.get('/logout');
 };
 
 export const loginInputSchema = z.object({

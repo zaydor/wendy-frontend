@@ -1,7 +1,8 @@
 const textColorLight = '#11181C';
 const textColorDark = '#fff';
 const backgroundColorLight = '#fff';
-const backgroundColorDark = '#25292e';
+const backgroundColorDark = '#121417';
+const backgroundColorDarkRaised = '#25292e';
 const headerTintDark = '#fff';
 const headerTintLight = '#11181C';
 const iconColorLight = '#687076';
@@ -11,21 +12,23 @@ const tabIconDefaultDark = '#9BA1A6';
 const tabIconSelectedLight = '#E54B4B';
 const tabIconSelectedDark = '#E54B4B';
 
+const primaryColor = '#E54B4B';
+const secondaryColor = '#8D99AE';
+const tertiaryColor = '#F2C57C';
+
+const transparent = 'rgba(0, 0, 0, 0)';
+
 export const Colors = {
-	light: {
-		text: textColorLight,
-		background: backgroundColorLight,
-		headerTint: headerTintLight,
-		icon: iconColorLight,
-		tabIconDefault: tabIconDefaultLight,
-		tabIconSelected: tabIconSelectedLight,
-	},
-	dark: {
-		text: textColorDark,
-		background: backgroundColorDark,
-		headerTint: headerTintDark,
-		icon: iconColorDark,
-		tabIconDefault: tabIconDefaultDark,
-		tabIconSelected: tabIconSelectedDark,
-	},
+	white: '#fff',
+	transparent: transparent,
+	primary: primaryColor,
+	secondary: secondaryColor,
+	tertiary: tertiaryColor,
+	text: textColorDark,
+	background: backgroundColorDark,
+	backgroundRaised: backgroundColorDarkRaised,
+	headerTint: headerTintDark,
+	icon: iconColorDark,
+	tabIconDefault: tabIconDefaultDark,
+	tabIconSelected: tabIconSelectedDark,
 };

@@ -1,11 +1,9 @@
 import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
 import { Link } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 export default function Index() {
-	const theme = useColorScheme() ?? 'light';
-	const colors = Colors[theme];
+	const colors = Colors;
 	const styles = StyleSheet.create({
 		container: {
 			flex: 1,

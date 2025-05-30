@@ -58,7 +58,9 @@ async function fetchApi(
 	});
 
 	const apiResponse = createApiResponse(await response.json());
-	console.log('API Response:', apiResponse);
+	if (process.env.NODE_ENV !== 'production') {
+		console.log('API Response:', apiResponse);
+	}
 	return apiResponse;
 }
 

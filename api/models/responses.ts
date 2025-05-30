@@ -35,7 +35,7 @@ export interface AuthUrlResponse extends StandardResponse {
 }
 
 export interface TokenInfoResponse extends StandardResponse {
-	token_info: string;
+	token_info: Record<string, unknown>;
 }
 
 export interface DataResponse extends StandardResponse {

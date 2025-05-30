@@ -9,7 +9,7 @@ import { useState } from 'react';
 import { Button, StyleSheet, Text, View } from 'react-native';
 
 export default function ProfileScreen() {
-	const { currentUser, loginUser, logoutUser } = useContext(AuthContext);
+	const { currentUser, logoutUser } = useContext(AuthContext);
 	const [showLogin, setShowLogin] = useState(true);
 	const colors = Colors;
 	const styles = StyleSheet.create({
@@ -28,13 +28,17 @@ export default function ProfileScreen() {
 	const [password, setPassword] = useState('');
 	const [confirmPassword, setConfirmPassword] = useState('');
 
-	const logout = useLogout({});
+	const logout = useLogout({
+		onSuccess: () => {
+			logoutUser();
+			console.log('User logged out successfully');
+		},
+		onError: (error) => {
+			console.error('Logout error:', error);
+		},
+	});
 	const onLogout = () => {
-		logout.mutate(undefined, {
-			onSuccess: () => {
-				logoutUser();
-			},
-		});
+		logout.mutate();
 	};
 
 	return (

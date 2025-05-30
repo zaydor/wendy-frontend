@@ -1,3 +1,5 @@
+import { PlaylistProps } from '@/api/models/playlist';
+import { ErrorResponse } from '@/api/models/responses';
 import { useAuthorizeSpotify, useWendyPlaylist } from '@/api/spotify';
 import CustomButton from '@/components/button';
 import { Colors } from '@/constants/Colors';
@@ -5,27 +7,28 @@ import { Linking, StyleSheet, Text, View } from 'react-native';
 
 export default function Index() {
 	const colors = Colors;
-	const requestSpotifyAuthorization = useAuthorizeSpotify({});
-	const requestWendyPlaylist = useWendyPlaylist({});
+	const requestSpotifyAuthorization = useAuthorizeSpotify({
+		onSuccess: (auth_url) => {
+			Linking.openURL(auth_url);
+		},
+		onError: (error) => {
+			console.error('Spotify Authorization Error:', error);
+		},
+	});
+	const requestWendyPlaylist = useWendyPlaylist({
+		onSuccess: (playlist: PlaylistProps) => {
+			console.log('Wendy Playlist:', playlist);
+		},
+		onError: (error: ErrorResponse) => {
+			console.error('Wendy Playlist Error:', error);
+		},
+	});
 	const onAuthorizeSpotify = () => {
-		requestSpotifyAuthorization.mutate(undefined, {
-			onSuccess: async (data) => {
-				await data.json().then((response: any) => {
-					const auth_url = response.auth_url;
-					Linking.openURL(auth_url);
-				});
-			},
-		});
+		requestSpotifyAuthorization.mutate();
 	};
 
 	const onWendyPlaylist = () => {
-		requestWendyPlaylist.mutate(undefined, {
-			onSuccess: async (data) => {
-				await data.json().then((response: any) => {
-					console.log('onWendyPlaylistResponse: ', response);
-				});
-			},
-		});
+		requestWendyPlaylist.mutate();
 	};
 
 	const styles = StyleSheet.create({
@@ -47,7 +50,7 @@ export default function Index() {
 	return (
 		<View style={styles.container}>
 			<Text style={styles.text}>Home Screen</Text>
-			<CustomButton title='Test Spotify' onPress={onAuthorizeSpotify} />
+			<CustomButton title='Test Spotify Auth' onPress={onAuthorizeSpotify} />
 			<CustomButton title='Test Playlist' onPress={onWendyPlaylist} />
 		</View>
 	);

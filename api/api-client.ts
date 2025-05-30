@@ -1,3 +1,4 @@
+import { ApiResponse, createApiResponse } from '@/api/models/responses';
 import { API_URL } from '@/constants/env';
 
 type RequestOptions = {
@@ -28,10 +29,10 @@ function buildUrlWithParams(
 	return `${url}?${queryString}`;
 }
 
-async function fetchApi<T>(
+async function fetchApi(
 	url: string,
 	options: RequestOptions = {}
-): Promise<T> {
+): Promise<ApiResponse> {
 	const { method = 'GET', headers, body, params, cache = 'no-store' } = options;
 
 	const fullUrl = buildUrlWithParams(`${API_URL}${url}`, params);
@@ -56,23 +57,25 @@ async function fetchApi<T>(
 		credentials: 'include',
 	});
 
-	return response as T;
+	const apiResponse = createApiResponse(await response.json());
+	console.log('API Response:', apiResponse);
+	return apiResponse;
 }
 
 export const api = {
-	get<T>(url: string, options?: RequestOptions): Promise<T> {
-		return fetchApi<T>(url, { ...options, method: 'GET' });
+	get<T>(url: string, options?: RequestOptions): Promise<ApiResponse> {
+		return fetchApi(url, { ...options, method: 'GET' });
 	},
-	post<T>(url: string, options?: RequestOptions): Promise<T> {
-		return fetchApi<T>(url, { ...options, method: 'POST' });
+	post<T>(url: string, options?: RequestOptions): Promise<ApiResponse> {
+		return fetchApi(url, { ...options, method: 'POST' });
 	},
-	put<T>(url: string, options?: RequestOptions): Promise<T> {
-		return fetchApi<T>(url, { ...options, method: 'PUT' });
+	put<T>(url: string, options?: RequestOptions): Promise<ApiResponse> {
+		return fetchApi(url, { ...options, method: 'PUT' });
 	},
-	delete<T>(url: string, options?: RequestOptions): Promise<T> {
-		return fetchApi<T>(url, { ...options, method: 'DELETE' });
+	delete<T>(url: string, options?: RequestOptions): Promise<ApiResponse> {
+		return fetchApi(url, { ...options, method: 'DELETE' });
 	},
-	patch<T>(url: string, options?: RequestOptions): Promise<T> {
-		return fetchApi<T>(url, { ...options, method: 'PATCH' });
+	patch<T>(url: string, options?: RequestOptions): Promise<ApiResponse> {
+		return fetchApi(url, { ...options, method: 'PATCH' });
 	},
 };

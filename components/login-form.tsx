@@ -1,4 +1,6 @@
 import { useLogin } from '@/api/auth';
+import { ErrorResponse } from '@/api/models/responses';
+import { UserProps } from '@/api/models/user';
 import CustomButton from '@/components/button';
 import Card from '@/components/card';
 import CustomTextInput from '@/components/text-input';
@@ -28,37 +30,23 @@ export const LoginForm = ({
 	const { control, handleSubmit } = useForm<LoginFormProps>({
 		mode: 'onBlur',
 	});
-	const { currentUser, loginUser, logoutUser } = useContext(AuthContext);
+	const { loginUser } = useContext(AuthContext);
 
 	const login = useLogin({
-		onSuccess,
+		onError: (error: ErrorResponse) => {
+			console.error('Login error:', error);
+		},
+		onSuccess: (user: UserProps) => {
+			console.log('User logged in successfully:', user);
+			loginUser(user);
+		},
 	});
 
 	const onSubmit = (values: any) => {
-		login.mutate(
-			{
-				email: values.email,
-				password: values.password,
-			},
-			{
-				onSuccess: (data) => {
-					if (data.status === 200) {
-						console.log('Login success:', data);
-						(async () => {
-							const user = (await data.json()).user;
-							loginUser(user);
-							onEmailChange('');
-							onPasswordChange('');
-						})();
-					} else {
-						console.log('Login failed:', data);
-					}
-				},
-				onError: (error) => {
-					console.log('Login error:', error);
-				},
-			}
-		);
+		login.mutate({
+			email: values.email,
+			password: values.password,
+		});
 	};
 
 	const styles = StyleSheet.create({

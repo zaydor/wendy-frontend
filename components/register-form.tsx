@@ -1,13 +1,15 @@
 import { useRegister } from '@/api/auth';
+import { ErrorResponse } from '@/api/models/responses';
+import { UserProps } from '@/api/models/user';
+import CustomButton from '@/components/button';
+import Card from '@/components/card';
+import CustomTextInput from '@/components/text-input';
 import { Colors } from '@/constants/Colors';
 import { AuthContext } from '@/contexts/AuthContext';
 import { useContext } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { StyleSheet, Text, View } from 'react-native';
 import { z } from 'zod';
-import CustomButton from './button';
-import Card from './card';
-import CustomTextInput from './text-input';
 
 type RegisterFormProps = {
 	onSuccess: () => void;
@@ -36,41 +38,29 @@ export const RegisterForm = ({
 	const { control, handleSubmit } = useForm<RegisterFormProps>({
 		mode: 'onBlur',
 	});
-	const { currentUser, loginUser, logoutUser } = useContext(AuthContext);
+	const { loginUser } = useContext(AuthContext);
 
 	const register = useRegister({
-		onSuccess,
+		onSuccess: (user: UserProps) => {
+			console.log('User registered successfully:', user);
+			loginUser(user);
+			onEmailChange('');
+			onNameChange('');
+			onPasswordChange('');
+			onConfirmPasswordChange('');
+		},
+		onError: (error: ErrorResponse) => {
+			console.error('Registration error:', error);
+		},
 	});
 
 	const onSubmit = (values: any) => {
-		register.mutate(
-			{
-				email: values.email,
-				name: values.name,
-				password: values.password,
-				confirm: values.confirmPassword,
-			},
-			{
-				onSuccess: (data) => {
-					if (data.status === 200) {
-						console.log('Register success:', data);
-						(async () => {
-							const user = (await data.json()).user;
-							loginUser(user);
-							onEmailChange('');
-							onNameChange('');
-							onPasswordChange('');
-							onConfirmPasswordChange('');
-						})();
-					} else {
-						console.log('Register failed:', data);
-					}
-				},
-				onError: (error) => {
-					console.log('Register error:', error);
-				},
-			}
-		);
+		register.mutate({
+			email: values.email,
+			name: values.name,
+			password: values.password,
+			confirm: values.confirmPassword,
+		});
 	};
 	const styles = StyleSheet.create({
 		textInput: {

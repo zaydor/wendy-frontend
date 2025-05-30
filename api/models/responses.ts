@@ -51,7 +51,7 @@ export function isAuthUrlResponse(resp: any): resp is AuthUrlResponse {
 }
 
 export function isTokenInfoResponse(resp: any): resp is TokenInfoResponse {
-	return typeof resp?.token_info === 'string';
+	return typeof resp?.token_info === 'object' && resp.token_info !== null;
 }
 
 export function isDataResponse(resp: any): resp is DataResponse {

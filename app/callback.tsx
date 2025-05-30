@@ -1,5 +1,6 @@
-import { api } from '@/api/api-client'; // adjust path as needed
-import { REDIRECT_URI } from '@/constants/env';
+import { useUser } from '@/api/auth';
+import { ErrorResponse, StandardResponse } from '@/api/models/responses';
+import { useSpotifyCallback } from '@/api/spotify';
 import { AuthContext } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
 import { useContext, useEffect } from 'react';
@@ -7,49 +8,36 @@ import { Text, View } from 'react-native';
 
 export default function CallbackScreen() {
 	const router = useRouter();
-	const { currentUser, loginUser, logoutUser } = useContext(AuthContext);
+	const { loginUser } = useContext(AuthContext);
+
+	const callback = useSpotifyCallback({
+		onSuccess: (data: StandardResponse) => {
+			if (data.status === 200) {
+				console.log(data.message);
+				refetchUser();
+			}
+		},
+		onError: (error: ErrorResponse) => {
+			console.error('Callback error:', error);
+		},
+	});
+
+	const { data: user, refetch: refetchUser } = useUser();
 
 	useEffect(() => {
-		const passCallbackCode = async () => {
-			try {
-				const url = new URL(window.location.href);
-				const code = url.searchParams.get('code');
+		const url = new URL(window.location.href);
+		const code = url.searchParams.get('code');
+		if (code && !callback.isPending && !callback.isSuccess) {
+			callback.mutate(code);
+		}
+	}, [callback]);
 
-				if (!code) {
-					console.log('No code parameter found in URL');
-					return;
-				}
-				const params = {
-					code: code,
-					redirect_uri: REDIRECT_URI,
-				};
-				const res = (await api.get<Response>(`/callback`, { params })) as any;
-
-				if (res.status === '200') {
-					console.log('passCallbackCode was successful!');
-				}
-			} catch (e) {
-				console.log('passCallbackCode error: ', e);
-			}
-		};
-
-		const checkAuth = async () => {
-			try {
-				passCallbackCode();
-
-				const res = (await (await api.get<Response>('/me')).json()) as any;
-				console.log('res.user: ', res.user);
-
-				if ((res as any).status !== 401) {
-					loginUser(res.user);
-					router.replace('/');
-				}
-			} catch (e) {
-				console.log('checkAuth error: ', e);
-			}
-		};
-		checkAuth();
-	}, [loginUser, router]);
+	useEffect(() => {
+		if (user) {
+			loginUser(user);
+			router.replace('/');
+		}
+	}, [user, loginUser, router]);
 
 	return (
 		<View>

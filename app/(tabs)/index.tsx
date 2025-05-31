@@ -1,6 +1,10 @@
-import { PlaylistProps } from '@/api/models/playlist';
+import { Playlist, PlaylistProps } from '@/api/models/playlist';
 import { ErrorResponse } from '@/api/models/responses';
-import { useAuthorizeSpotify, useWendyPlaylist } from '@/api/spotify';
+import {
+	useAllWendy,
+	useAuthorizeSpotify,
+	useWendyPlaylist,
+} from '@/api/spotify';
 import CustomButton from '@/components/button';
 import { Colors } from '@/constants/Colors';
 import { Linking, StyleSheet, Text, View } from 'react-native';
@@ -23,12 +27,25 @@ export default function Index() {
 			console.error('Wendy Playlist Error:', error);
 		},
 	});
+
+	const requestAllWendyPlaylist = useAllWendy({
+		onSuccess: (wendy: Playlist) => {
+			console.log('All Wendy Playlist:', wendy);
+		},
+		onError: (error: ErrorResponse) => {
+			console.error('All Wendy Playlist Error:', error);
+		},
+	});
 	const onAuthorizeSpotify = () => {
 		requestSpotifyAuthorization.mutate();
 	};
 
 	const onWendyPlaylist = () => {
 		requestWendyPlaylist.mutate();
+	};
+
+	const onAllWendy = () => {
+		requestAllWendyPlaylist.mutate(undefined);
 	};
 
 	const styles = StyleSheet.create({
@@ -51,7 +68,7 @@ export default function Index() {
 		<View style={styles.container}>
 			<Text style={styles.text}>Home Screen</Text>
 			<CustomButton title='Test Spotify Auth' onPress={onAuthorizeSpotify} />
-			<CustomButton title='Test Playlist' onPress={onWendyPlaylist} />
+			<CustomButton title='Test Playlist' onPress={onAllWendy} />
 		</View>
 	);
 }

@@ -9,6 +9,7 @@ import {
 } from '@/api/models/responses';
 import { REDIRECT_URI, WENDY_PLAYLIST_ID } from '@/constants/env';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Tracks } from './models/tracks';
 
 const spotifyAuthQueryKey = ['spotifyAuthURL'];
 
@@ -57,6 +58,22 @@ export const useWendyPlaylist = ({
 	});
 };
 
+export const useAllWendy = ({
+	onSuccess,
+	onError,
+}: {
+	onSuccess?: (wendy: Playlist) => void;
+	onError?: (error: ErrorResponse) => void;
+}) => {
+	return useMutation({
+		mutationFn: getAllWendy,
+		onSuccess: (wendy: Playlist) => {
+			onSuccess?.(wendy);
+		},
+		onError,
+	});
+};
+
 export const useSpotifyCallback = ({
 	onSuccess,
 	onError,
@@ -100,4 +117,39 @@ const getPlaylist = async (playlist_id: string): Promise<ApiResponse> => {
 		playlist_id: playlist_id,
 	};
 	return await api.get('/playlists', { params });
+};
+
+const getAllWendy = async (): Promise<Playlist> => {
+	const playlist_response = await getPlaylist(WENDY_PLAYLIST_ID);
+	if (playlist_response.status !== 200) {
+		throw new Error('Failed to fetch Wendy playlist');
+	}
+	let wendy = Playlist.from_json((playlist_response as DataResponse).data);
+	console.log('Wendy Playlist:', wendy);
+	let hasNext = true;
+	let offset = wendy.tracks.items.length;
+
+	while (hasNext) {
+		const params = {
+			playlist_id: wendy.id,
+			limit: 100,
+			offset,
+		};
+		const response = (await api.get('/playlists/tracks', {
+			params,
+		})) as DataResponse;
+		const tracks = Tracks.from_json(response.data);
+
+		if (tracks && tracks.items) {
+			wendy.tracks.items = wendy.tracks.items.concat(tracks.items);
+		}
+
+		if (tracks && tracks.next) {
+			offset += tracks.items.length;
+		} else {
+			hasNext = false;
+		}
+	}
+
+	return wendy;
 };

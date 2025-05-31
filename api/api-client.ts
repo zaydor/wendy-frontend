@@ -6,7 +6,7 @@ type RequestOptions = {
 	headers?: Record<string, string>;
 	body?: any;
 	cookie?: string;
-	params?: Record<string, string | number | boolean | undefined | null>;
+	params?: Record<string, any>;
 	cache?: RequestCache;
 };
 

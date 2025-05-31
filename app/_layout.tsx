@@ -25,7 +25,7 @@ export default function RootLayout() {
 	const [queryClient] = useState(() => {
 		const client = new QueryClient({ defaultOptions: queryConfig });
 
-		const [, restorePromise] = persistQueryClient({
+		const [unsubscribe, restorePromise] = persistQueryClient({
 			queryClient: client,
 			persister: localStoragePersistor,
 			maxAge: 1000 * 60 * 60, // 1 hour

@@ -41,14 +41,14 @@ export class Wendy implements WendyProps {
 		this.numberOfWendies = this.wendyTracks.length;
 	}
 
-	convertTracksToWendyEntries = (tracks: Tracks): WendyEntry[] => {
+	convertTracksToWendyEntries(tracks: Tracks): WendyEntry[] {
 		const entries: WendyEntry[] = [];
 		let currentTracks: string[] = [];
 		let entryId = 1;
 
 		for (const item of tracks.items) {
 			const trackUri = item.track.uri;
-			if (trackUri === 'spotify:track:2jQIzjFeqCT3jOUi3dIlWB') continue;
+			if (trackUri === EXCLUDED_TRACK_URI) continue;
 
 			currentTracks.push(trackUri);
 

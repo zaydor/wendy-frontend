@@ -1,5 +1,5 @@
 import { api } from '@/api/api-client';
-import { Playlist, PlaylistProps } from '@/api/models/playlist';
+import { Playlist } from '@/api/models/playlist';
 import {
 	ApiResponse,
 	AuthUrlResponse,
@@ -8,10 +8,43 @@ import {
 	StandardResponse,
 } from '@/api/models/responses';
 import { REDIRECT_URI, WENDY_PLAYLIST_ID } from '@/constants/env';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
+import { queryOptions, useMutation, useQuery } from '@tanstack/react-query';
 import { Tracks } from './models/tracks';
+import { Wendy } from './models/wendy';
 
-const spotifyAuthQueryKey = ['spotifyAuthURL'];
+const spotifyWendyQueryKey = ['wendyPlaylist'];
+
+export const localStoragePersistor = createAsyncStoragePersister({
+	storage: AsyncStorage,
+	key: 'wendy-playlist-cache',
+});
+
+export const getWendyQueryOptions = () => {
+	return queryOptions({
+		queryKey: spotifyWendyQueryKey,
+		queryFn: getWendy,
+		staleTime: Infinity,
+		gcTime: 1000 * 60 * 60 * 24,
+		refetchOnWindowFocus: false,
+		refetchOnReconnect: false,
+		refetchInterval: false,
+		refetchOnMount: false,
+	});
+};
+
+export const useWendy = () => {
+	const query = useQuery({
+		...getWendyQueryOptions(),
+	});
+
+	if (query.data) {
+		console.log('Using CACHED Wendy data - no API call needed!');
+	}
+
+	return query;
+};
 
 export const useAuthorizeSpotify = ({
 	onSuccess,
@@ -20,7 +53,6 @@ export const useAuthorizeSpotify = ({
 	onSuccess?: (auth_url: string) => void;
 	onError?: (error: ErrorResponse) => void;
 }) => {
-	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: requestSpotifyAuthorization,
 		onSuccess: (data) => {
@@ -33,44 +65,6 @@ export const useAuthorizeSpotify = ({
 				onError?.(res);
 			}
 		},
-	});
-};
-
-export const useWendyPlaylist = ({
-	onSuccess,
-	onError,
-}: {
-	onSuccess?: (playlist: PlaylistProps) => void;
-	onError?: (error: ErrorResponse) => void;
-}) => {
-	return useMutation({
-		mutationFn: () => getPlaylist(WENDY_PLAYLIST_ID),
-		onSuccess: (data: ApiResponse) => {
-			if (data.status === 200) {
-				const res: DataResponse = data as DataResponse;
-				const playlist: Playlist = Playlist.from_json(res.data);
-				onSuccess?.(playlist);
-			} else {
-				const res: ErrorResponse = data as ErrorResponse;
-				onError?.(res);
-			}
-		},
-	});
-};
-
-export const useAllWendy = ({
-	onSuccess,
-	onError,
-}: {
-	onSuccess?: (wendy: Playlist) => void;
-	onError?: (error: ErrorResponse) => void;
-}) => {
-	return useMutation({
-		mutationFn: getAllWendy,
-		onSuccess: (wendy: Playlist) => {
-			onSuccess?.(wendy);
-		},
-		onError,
 	});
 };
 
@@ -119,19 +113,19 @@ const getPlaylist = async (playlist_id: string): Promise<ApiResponse> => {
 	return await api.get('/playlists', { params });
 };
 
-const getAllWendy = async (): Promise<Playlist> => {
+export const getWendy = async (): Promise<Wendy> => {
 	const playlist_response = await getPlaylist(WENDY_PLAYLIST_ID);
 	if (playlist_response.status !== 200) {
 		throw new Error('Failed to fetch Wendy playlist');
 	}
-	let wendy = Playlist.from_json((playlist_response as DataResponse).data);
-	console.log('Wendy Playlist:', wendy);
+	const playlist = Playlist.from_json((playlist_response as DataResponse).data);
+	console.log('Wendy Playlist fetched from API:', playlist.name);
 	let hasNext = true;
-	let offset = wendy.tracks.items.length;
+	let offset = playlist.tracks.items.length;
 
 	while (hasNext) {
 		const params = {
-			playlist_id: wendy.id,
+			playlist_id: playlist.id,
 			limit: 100,
 			offset,
 		};
@@ -141,7 +135,7 @@ const getAllWendy = async (): Promise<Playlist> => {
 		const tracks = Tracks.from_json(response.data);
 
 		if (tracks && tracks.items) {
-			wendy.tracks.items = wendy.tracks.items.concat(tracks.items);
+			playlist.tracks.items = playlist.tracks.items.concat(tracks.items);
 		}
 
 		if (tracks && tracks.next) {
@@ -150,6 +144,5 @@ const getAllWendy = async (): Promise<Playlist> => {
 			hasNext = false;
 		}
 	}
-
-	return wendy;
+	return new Wendy(playlist);
 };

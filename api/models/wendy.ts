@@ -14,7 +14,10 @@ export interface WendyProps {
 	uri: string;
 	images: Image[];
 	wendyTracks: WendyEntry[];
+	numberOfWendies: number;
 }
+
+const EXCLUDED_TRACK_URI = 'spotify:track:2jQIzjFeqCT3jOUi3dIlWB';
 
 export class Wendy implements WendyProps {
 	name: string;
@@ -79,5 +82,5 @@ export class Wendy implements WendyProps {
 		}
 
 		return entries;
-	};
+	}
 }

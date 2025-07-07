@@ -30,6 +30,8 @@ export class Wendy implements WendyProps {
 	images: Image[];
 	wendyTracks: WendyEntry[];
 	numberOfWendies: number;
+	entryById: Map<number, WendyEntry>;
+	songToEntry: Map<string, WendyEntry>;
 
 	constructor(playlist: Playlist) {
 		this.name = playlist.name;
@@ -42,6 +44,15 @@ export class Wendy implements WendyProps {
 		this.images = playlist.images;
 		this.wendyTracks = this.convertTracksToWendyEntries(playlist.tracks);
 		this.numberOfWendies = this.wendyTracks.length;
+		this.entryById = new Map(
+			this.wendyTracks.map((entry) => [entry.id, entry])
+		);
+		this.songToEntry = new Map();
+		for (const entry of this.wendyTracks) {
+			for (const track of entry.wendyTracks) {
+				this.songToEntry.set(track, entry);
+			}
+		}
 	}
 
 	convertTracksToWendyEntries(tracks: Tracks): WendyEntry[] {
